@@ -214,6 +214,51 @@ Window {
         }
     }
 
+    // --- AI STATUS SIGN COMPONENT ---
+    component AISign: Item {
+        id: aiSign
+        width: 110
+        height: 100
+        property string label: ""
+        property bool active: false
+        property color activeColor: root.eqCyan
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 6
+            Rectangle {
+                id: bulb
+                width: 40
+                height: 40
+                radius: width / 2
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: aiSign.active ? aiSign.activeColor : "#1a1a1a"
+                border.color: aiSign.active ? aiSign.activeColor : "#555555"
+                border.width: 3
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    blurEnabled: aiSign.active
+                    blur: 0.3
+                    brightness: aiSign.active ? 0.6 : 0.0
+                }
+                SequentialAnimation on opacity {
+                    running: aiSign.active
+                    loops: Animation.Infinite
+                    NumberAnimation { to: 0.3; duration: 450 }
+                    NumberAnimation { to: 1.0; duration: 450 }
+                }
+            }
+            Text {
+                text: aiSign.label
+                color: aiSign.active ? aiSign.activeColor : "#888888"
+                font.pixelSize: 13
+                font.weight: Font.Bold
+                font.family: "Century Gothic"
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+    }
+
     // --- MAIN CENTER CONTENT ---
     Item {
         anchors.centerIn: parent
@@ -308,129 +353,41 @@ Window {
                 }
             }
 
-            // Warning icons row
+            // AI status signs row (normal / electrical / mechanical)
             RowLayout {
+                id: aiSigns
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 5
-                y: 200
-                Item {
-                    width: 25
+                spacing: 30
+                y: 195
+
+                AISign {
+                    label: "NORMAL"
+                    active: Vehicle.aiNormal
+                    activeColor: "#00e676"
                 }
-                // speedWarningImage — Speed warning
-                Image {
-                    id: speedWarningImage
-                    source: "qrc:/images/images/speed.svg"
-                    Layout.preferredWidth: 90
-                    Layout.preferredHeight: 110
-
-                    MultiEffect {
-                        source: speedWarningImage
-                        anchors.fill: speedWarningImage
-                        colorization: 1.0
-                        colorizationColor: Vehicle.speedWarning ? "#FF3131" : "#888888"
-                        opacity: Vehicle.speedWarning ? 1.0 : 0.3
-
-                        SequentialAnimation on opacity {
-                            running: Vehicle.speedWarning
-                            loops: Animation.Infinite
-                            NumberAnimation {
-                                to: 0
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                            NumberAnimation {
-                                to: 1
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                        }
-                    }
+                AISign {
+                    label: "ELECTRICAL"
+                    active: Vehicle.aiElectrical
+                    activeColor: "#ffb300"
                 }
-
-                // tempWarningImage — Temp warning
-                Image {
-                    id: tempWarningImage
-                    source: "qrc:/images/images/temp.svg"
-                    Layout.preferredWidth: 100
-                    Layout.preferredHeight: 120
-
-                    MultiEffect {
-                        source: tempWarningImage
-                        anchors.fill: tempWarningImage
-                        colorization: 1.0
-                        colorizationColor: Vehicle.tempWarning ? "#FF3131" : "#888888"
-                        opacity: Vehicle.tempWarning ? 1.0 : 0.3
-
-                        SequentialAnimation on opacity {
-                            running: Vehicle.tempWarning
-                            loops: Animation.Infinite
-                            NumberAnimation {
-                                to: 0
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                            NumberAnimation {
-                                to: 1
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                        }
-                    }
+                AISign {
+                    label: "MECHANICAL"
+                    active: Vehicle.aiMechanical
+                    activeColor: "#ff3131"
                 }
+            }
 
-                // vibrationWarningImage — Vibration warning
-                Image {
-                    id: vibrationWarningImage
-                    source: "qrc:/images/images/vibration.svg"
-                    Layout.preferredWidth: 120
-                    Layout.preferredHeight: 120
-
-                    MultiEffect {
-                        source: vibrationWarningImage
-                        anchors.fill: vibrationWarningImage
-                        colorization: 1.0
-                        colorizationColor: Vehicle.vibWarning ? "#FF3131" : "#888888"
-                        opacity: Vehicle.vibWarning ? 1.0 : 0.3
-
-                        SequentialAnimation on opacity {
-                            running: Vehicle.vibWarning
-                            loops: Animation.Infinite
-                            NumberAnimation {
-                                to: 0
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                            NumberAnimation {
-                                to: 1
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                        }
-                    }
-                }
-
-                // voltageWarningImage — Voltage warning
-                Image {
-                    id: voltageWarningImage
-                    source: "qrc:/images/images/voltage.svg"
-                    Layout.preferredWidth: 120
-                    Layout.preferredHeight: 120
-
-                    MultiEffect {
-                        source: voltageWarningImage
-                        anchors.fill: voltageWarningImage
-                        colorization: 1.0
-                        colorizationColor: Vehicle.voltageWarning ? "#FF3131" : "#888888"
-                        opacity: Vehicle.voltageWarning ? 1.0 : 0.3
-
-                        SequentialAnimation on opacity {
-                            running: Vehicle.voltageWarning
-                            loops: Animation.Infinite
-                            NumberAnimation {
-                                to: 0
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                            NumberAnimation {
-                                to: 1
-                                duration: Vehicle.criticalAlert ? 150 : 500
-                            }
-                        }
-                    }
-                }
+            // Remaining useful life
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: aiSigns.bottom
+                anchors.topMargin: 2
+                text: "RUL  " + Vehicle.aiRul
+                color: Vehicle.aiNormal ? "white" : root.eqCyan
+                font.pixelSize: 13
+                font.family: "Century Gothic"
+                font.weight: Font.DemiBold
+                opacity: 0.85
             }
 
             // Border glow
@@ -450,13 +407,13 @@ Window {
             }
         }
 
-        // ── Right gauge: power % with correct scale ───────────────────────
+        // ── Right gauge: power kW with correct scale ──────────────────────
         EQDial {
             id: rightGauge
             anchors.right: parent.right
-            label: "POWER %"
-            maxValue: 220
-            stopAt: 147
+            label: "POWER kW"
+            maxValue: 60
+            stopAt: 40
             clockwise: false
 
             property real _target: Vehicle.power
@@ -617,8 +574,8 @@ Window {
             anchors.left: parent.left
             spacing: 18
             Text {
-                text: "NORMAL"
-                color: "white"
+                text: Vehicle.aiStatus.toUpperCase()
+                color: Vehicle.aiNormal ? "white" : (Vehicle.aiElectrical ? "#ffb300" : "#ff3131")
                 font.pixelSize: 14
                 font.weight: Font.Bold
                 font.family: "Century Gothic"
